@@ -467,9 +467,18 @@ using extensions_type = std::vector<std::pair<uint16_t, bytes>>;
 using eosio::abi_def;
 
 ABIEOS_NODISCARD inline bool check_abi_version(const std::string& s, std::string& error) {
-   if (auto prefix = s.substr(0, 13); prefix != "eosio::abi/1." && prefix != "eosio::abi/2.")
-        return set_error(error, "unsupported abi version");
-    return true;
+    // Antelope/EOSIO namespace
+    if (auto p = s.substr(0, 13); p == "eosio::abi/1." || p == "eosio::abi/2.")
+        return true;
+    // Anvo Core namespace — a modern fork of Antelope Spring that renamed
+    // the ABI version namespace to `core_net`. The wire format is
+    // structurally identical to eosio::abi/{1,2}.x; only the version
+    // string prefix differs. See AnvoIO/core for the project and its
+    // docs/wasm_compatibility.md for the parser's acceptance policy.
+    // https://github.com/AnvoIO/core
+    if (auto p = s.substr(0, 16); p == "core_net::abi/1." || p == "core_net::abi/2.")
+        return true;
+    return set_error(error, "unsupported abi version");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

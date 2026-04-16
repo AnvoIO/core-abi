@@ -696,6 +696,14 @@ void check_types() {
     abieos_set_abi(context, 8, R"({"version":"eosio::abi/1.0"})");
     abieos_set_abi(context, 8, R"({"version":"eosio::abi/1.1"})");
 
+    // Anvo Core namespace — modern Antelope Spring fork that uses
+    // `core_net::abi/*`. Structurally identical to eosio::abi/{1,2}.x.
+    // See https://github.com/AnvoIO/core .
+    abieos_set_abi(context, 8, R"({"version":"core_net::abi/1.0"})");
+    abieos_set_abi(context, 8, R"({"version":"core_net::abi/1.1"})");
+    check_error(context, "unsupported abi version",
+                [&] { return abieos_set_abi(context, 8, R"({"version":"core_net::abi/9.0"})"); });
+
     check_type(context, 0, "bool", R"(true)");
     check_type(context, 0, "bool", R"(false)");
     check_error(context, "Stream overrun", [&] { return abieos_hex_to_json(context, 0, "bool", ""); });
