@@ -9,7 +9,7 @@
 #include <string>
 #include <string_view>
 
-#include "abieos_ripemd160.hpp"
+#include "core_abi_ripemd160.hpp"
 
 using namespace core_net;
 
@@ -86,10 +86,10 @@ std::string binary_to_base58(const Container& bin) {
 template <typename... Container>
 std::array<unsigned char, 20> digest_suffix_ripemd160(const Container&... data) {
     std::array<unsigned char, 20> digest;
-    abieos_ripemd160::ripemd160_state self;
-    abieos_ripemd160::ripemd160_init(&self);
-    (abieos_ripemd160::ripemd160_update(&self, data.data(), data.size()), ...);
-    check( abieos_ripemd160::ripemd160_digest(&self, digest.data()),
+    core_abi_ripemd160::ripemd160_state self;
+    core_abi_ripemd160::ripemd160_init(&self);
+    (core_abi_ripemd160::ripemd160_update(&self, data.data(), data.size()), ...);
+    check( core_abi_ripemd160::ripemd160_digest(&self, digest.data()),
         convert_json_error(core_net::from_json_error::invalid_signature) );
     return digest;
 }

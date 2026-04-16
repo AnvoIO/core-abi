@@ -1,6 +1,6 @@
 #include <charconv>
 #include <core_net/abi.hpp>
-#include "abieos.hpp"
+#include "core_abi.hpp"
 
 using namespace core_net;
 
@@ -13,17 +13,17 @@ bool ends_with(const std::string& s, const char (&suffix)[i]) {
 
 template <typename T>
 struct abi_serializer_impl : abi_serializer {
-    void json_to_bin(::abieos::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
+    void json_to_bin(::core_abi::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
                              bool start) const override {
-        return ::abieos::json_to_bin((T*)nullptr, state, allow_extensions, type, start);
+        return ::core_abi::json_to_bin((T*)nullptr, state, allow_extensions, type, start);
     }
-    void json_to_bin(::abieos::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
+    void json_to_bin(::core_abi::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
                              bool start) const override {
-        return ::abieos::json_to_bin((T*)nullptr, state, allow_extensions, type, start);
+        return ::core_abi::json_to_bin((T*)nullptr, state, allow_extensions, type, start);
     }
-    void bin_to_json(::abieos::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
+    void bin_to_json(::core_abi::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
                              bool start) const override {
-        return ::abieos::bin_to_json((T*)nullptr, state, allow_extensions, type, start);
+        return ::core_abi::bin_to_json((T*)nullptr, state, allow_extensions, type, start);
     }
 };
 
@@ -55,7 +55,7 @@ abi_type* get_type(std::map<std::string, abi_type>& abi_types, const std::string
                 !holds_any_alternative<abi_type::optional, abi_type::extension>(base->_data),
                 "Invalid optional nesting for type: " + name
             );
-            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::optional{base}, &abi_serializer_for< ::abieos::pseudo_optional>);
+            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::optional{base}, &abi_serializer_for< ::core_abi::pseudo_optional>);
             return &iter->second;
         } else if (ends_with(name, "[]")) {
             auto element = get_type(abi_types, name.substr(0, name.size() - 2), depth + 1);
@@ -64,7 +64,7 @@ abi_type* get_type(std::map<std::string, abi_type>& abi_types, const std::string
                 !holds_any_alternative<abi_type::optional, abi_type::extension>(element->_data),
                 "Invalid array nesting for type: " + name
             );
-            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::array{element}, &abi_serializer_for< ::abieos::pseudo_array>);
+            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::array{element}, &abi_serializer_for< ::core_abi::pseudo_array>);
             return &iter->second;
         } else if (ends_with(name, "]")) {
             // fixed_array
@@ -85,7 +85,7 @@ abi_type* get_type(std::map<std::string, abi_type>& abi_types, const std::string
                 core_net::check(!holds_any_alternative<abi_type::optional, abi_type::extension>(element->_data),
                              "Invalid array nesting for type: " + name);
                 auto [iter, success] = abi_types.try_emplace(name, name, abi_type::fixed_array{element, size_t(size)},
-                                                             &abi_serializer_for<::abieos::pseudo_fixed_array>);
+                                                             &abi_serializer_for<::core_abi::pseudo_fixed_array>);
                 return &iter->second;
             } else
                 core_net::check(false, "']' character found without matching '[' in type specification");
@@ -95,7 +95,7 @@ abi_type* get_type(std::map<std::string, abi_type>& abi_types, const std::string
                 !std::holds_alternative<abi_type::extension>(base->_data),
                 "Invalid extension nesting for type: " + name
             );
-            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::extension{base}, &abi_serializer_for< ::abieos::pseudo_extension>);
+            auto [iter, success] = abi_types.try_emplace(name, name, abi_type::extension{base}, &abi_serializer_for< ::core_abi::pseudo_extension>);
             return &iter->second;
         } else
            core_net::check(false, core_net::convert_abi_error(abi_error::unknown_type));
@@ -196,7 +196,7 @@ void core_net::convert(const abi_def& abi, core_net::abi& c) {
         c.abi_types.try_emplace("extended_asset", "extended_asset",
                                 abi_type::struct_{nullptr, {{"quantity", &c.abi_types.find("asset")->second},
                                                             {"contract", &c.abi_types.find("name")->second}}},
-                                &abi_serializer_for<::abieos::pseudo_object>);
+                                &abi_serializer_for<::core_abi::pseudo_object>);
     }
 
     for (auto& t : abi.types) {
@@ -209,14 +209,14 @@ void core_net::convert(const abi_def& abi, core_net::abi& c) {
     for (auto& s : abi.structs) {
        core_net::check(!s.name.empty(),
             core_net::convert_abi_error(abi_error::missing_name));
-        auto [it, inserted] = c.abi_types.try_emplace(s.name, s.name, &s, &abi_serializer_for<::abieos::pseudo_object>);
+        auto [it, inserted] = c.abi_types.try_emplace(s.name, s.name, &s, &abi_serializer_for<::core_abi::pseudo_object>);
         core_net::check(inserted,
             core_net::convert_abi_error(abi_error::redefined_type));
     }
     for (auto& v : abi.variants.value) {
        core_net::check(!v.name.empty(),
             core_net::convert_abi_error(abi_error::missing_name));
-        auto [it, inserted] = c.abi_types.try_emplace(v.name, v.name, &v, &abi_serializer_for<::abieos::pseudo_variant>);
+        auto [it, inserted] = c.abi_types.try_emplace(v.name, v.name, &v, &abi_serializer_for<::core_abi::pseudo_variant>);
         core_net::check(inserted,
             core_net::convert_abi_error(abi_error::redefined_type));
     }
@@ -271,29 +271,29 @@ void core_net::convert(const core_net::abi& abi, core_net::abi_def& def) {
    }
 }
 
-const abi_serializer* const core_net::object_abi_serializer = &abi_serializer_for< ::abieos::pseudo_object>;
-const abi_serializer* const core_net::variant_abi_serializer = &abi_serializer_for< ::abieos::pseudo_variant>;
-const abi_serializer* const core_net::array_abi_serializer = &abi_serializer_for< ::abieos::pseudo_array>;
-const abi_serializer* const core_net::fixed_array_abi_serializer = &abi_serializer_for< ::abieos::pseudo_fixed_array>;
-const abi_serializer* const core_net::extension_abi_serializer = &abi_serializer_for< ::abieos::pseudo_extension>;
-const abi_serializer* const core_net::optional_abi_serializer = &abi_serializer_for< ::abieos::pseudo_optional>;
+const abi_serializer* const core_net::object_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_object>;
+const abi_serializer* const core_net::variant_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_variant>;
+const abi_serializer* const core_net::array_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_array>;
+const abi_serializer* const core_net::fixed_array_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_fixed_array>;
+const abi_serializer* const core_net::extension_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_extension>;
+const abi_serializer* const core_net::optional_abi_serializer = &abi_serializer_for< ::core_abi::pseudo_optional>;
 
 std::vector<char> core_net::abi_type::json_to_bin_reorderable(std::string_view json, std::function<void()> f) const {
-   abieos::jvalue tmp;
-   abieos::json_to_jvalue(tmp, json, f);
+   core_abi::jvalue tmp;
+   core_abi::json_to_jvalue(tmp, json, f);
    std::vector<char> result;
-   abieos::json_to_bin(result, this, tmp, f);
+   core_abi::json_to_bin(result, this, tmp, f);
    return result;
 }
 
 std::vector<char> core_net::abi_type::json_to_bin(std::string_view json, std::function<void()> f) const {
    std::vector<char> result;
-   abieos::json_to_bin(result, this, json, f);
+   core_abi::json_to_bin(result, this, json, f);
    return result;
 }
 
 std::string core_net::abi_type::bin_to_json(input_stream& bin, std::function<void()> f) const {
    std::string result;
-   abieos::bin_to_json(bin, this, result, f);
+   core_abi::bin_to_json(bin, this, result, f);
    return result;
 }

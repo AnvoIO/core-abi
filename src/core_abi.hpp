@@ -1,4 +1,4 @@
-// copyright defined in abieos/LICENSE.txt
+// copyright defined in LICENSE
 
 #pragma once
 
@@ -37,13 +37,13 @@
 #pragma clang diagnostic pop
 #endif
 
-#include "abieos_numeric.hpp"
+#include "core_abi_numeric.hpp"
 
 #include "rapidjson/reader.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-namespace abieos {
+namespace core_abi {
 
 using core_net::from_bin;
 using core_net::to_bin;
@@ -290,17 +290,17 @@ struct bin_to_json_state {
 namespace core_net {
 
 struct abi_serializer {
-  virtual void json_to_bin(::abieos::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
+  virtual void json_to_bin(::core_abi::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
-  virtual void json_to_bin(::abieos::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
+  virtual void json_to_bin(::core_abi::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
-  virtual void bin_to_json(::abieos::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
+  virtual void bin_to_json(::core_abi::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
 };
 
 }
 
-namespace abieos {
+namespace core_abi {
 
 ///////////////////////////////////////////////////////////////////////////////
 // serializer function prototypes
@@ -1104,4 +1104,4 @@ auto bin_to_json(T* t, bin_to_json_state& state, bool, const abi_type*, bool sta
     return to_json(v, state.writer);
 }
 
-} // namespace abieos
+} // namespace core_abi

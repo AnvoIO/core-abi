@@ -1,5 +1,5 @@
 #include <core_net/to_key.hpp>
-#include "abieos.hpp"
+#include "core_abi.hpp"
 
 int error_count;
 
@@ -12,25 +12,25 @@ void report_error(const char* assertion, const char* file, int line) {
 
 #define CHECK(...) do { if(__VA_ARGS__) {} else { report_error(#__VA_ARGS__, __FILE__, __LINE__); } } while(0)
 
-using abieos::int128;
-using abieos::uint128;
-using abieos::varint32;
-using abieos::varuint32;
-using abieos::float128;
-using abieos::time_point;
-using abieos::time_point_sec;
-using abieos::block_timestamp;
+using core_abi::int128;
+using core_abi::uint128;
+using core_abi::varint32;
+using core_abi::varuint32;
+using core_abi::float128;
+using core_abi::time_point;
+using core_abi::time_point_sec;
+using core_abi::block_timestamp;
 using core_net::name;
-using abieos::bytes;
-using abieos::checksum160;
-using abieos::checksum256;
-using abieos::checksum512;
-using abieos::public_key;
-using abieos::private_key;
-using abieos::signature;
-using abieos::symbol;
-using abieos::symbol_code;
-using abieos::asset;
+using core_abi::bytes;
+using core_abi::checksum160;
+using core_abi::checksum256;
+using core_abi::checksum512;
+using core_abi::public_key;
+using core_abi::private_key;
+using core_abi::signature;
+using core_abi::symbol;
+using core_abi::symbol_code;
+using core_abi::asset;
 
 using vec_type = std::vector<int>;
 struct struct_type {
