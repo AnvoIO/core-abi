@@ -1,16 +1,16 @@
-#include <eosio/to_json.hpp>
-#include <eosio/from_json.hpp>
-#include <eosio/to_bin.hpp>
-#include <eosio/from_bin.hpp>
-#include <eosio/bytes.hpp>
-#include <eosio/crypto.hpp>
-#include <eosio/symbol.hpp>
-#include <eosio/asset.hpp>
-#include <eosio/time.hpp>
-#include <eosio/fixed_bytes.hpp>
-#include <eosio/float.hpp>
-#include <eosio/varint.hpp>
-#include <eosio/abi.hpp>
+#include <core_net/to_json.hpp>
+#include <core_net/from_json.hpp>
+#include <core_net/to_bin.hpp>
+#include <core_net/from_bin.hpp>
+#include <core_net/bytes.hpp>
+#include <core_net/crypto.hpp>
+#include <core_net/symbol.hpp>
+#include <core_net/asset.hpp>
+#include <core_net/time.hpp>
+#include <core_net/fixed_bytes.hpp>
+#include <core_net/float.hpp>
+#include <core_net/varint.hpp>
+#include <core_net/abi.hpp>
 
 int error_count;
 
@@ -28,22 +28,22 @@ void report_error(const char* assertion, const char* file, int line) {
 template<typename T, typename F>
 std::vector<char> test_serialize(const T& value, F&& f) {
    std::vector<char> buf1;
-   eosio::vector_stream vecstream(buf1);
-   eosio::size_stream szstream;
+   core_net::vector_stream vecstream(buf1);
+   core_net::size_stream szstream;
    f(value, vecstream);
    f(value, szstream);
    CHECK(szstream.size == vecstream.data.size());
    std::vector<char> buf2(szstream.size);
-   eosio::fixed_buf_stream fxstream(buf2.data(), buf2.size());
+   core_net::fixed_buf_stream fxstream(buf2.data(), buf2.size());
    f(value, fxstream);
    CHECK(buf1 == buf2);
    return buf1;
 }
 
-eosio::abi round_trip_abi(const eosio::abi& src) {
-   eosio::abi_def def;
+core_net::abi round_trip_abi(const core_net::abi& src) {
+   core_net::abi_def def;
    convert(src, def);
-   eosio::abi result;
+   core_net::abi result;
    convert(def, result);
    return result;
 }
@@ -57,32 +57,32 @@ auto check_result(T&& t) {
 
 // Verifies that all 6 conversions between native/bin/json round-trip
 template<typename T>
-void test(const T& value, eosio::abi& abi1, eosio::abi& abi2) {
+void test(const T& value, core_net::abi& abi1, core_net::abi& abi2) {
    std::vector<char> bin = test_serialize(value, [](const T& v, auto& stream) { return to_bin(v, stream); });
    std::vector<char> json = test_serialize(value, [](const T& v, auto& stream) { return to_json(v, stream); });
    {
       T bin_value;
-      eosio::input_stream bin_stream(bin);
+      core_net::input_stream bin_stream(bin);
       from_bin(bin_value, bin_stream);
       CHECK(bin_value == value);
       T json_value;
       std::string mutable_json(json.data(), json.size());
-      eosio::json_token_stream json_stream(mutable_json.data());
+      core_net::json_token_stream json_stream(mutable_json.data());
       from_json(json_value, json_stream);
       CHECK(json_value == value);
    }
 
-   for(eosio::abi* abi : {&abi1, &abi2})
+   for(core_net::abi* abi : {&abi1, &abi2})
    {
       // Get the ABI
-      using eosio::get_type_name;
-      const eosio::abi_type* type = abi->get_type(get_type_name((T*)nullptr));
+      using core_net::get_type_name;
+      const core_net::abi_type* type = abi->get_type(get_type_name((T*)nullptr));
 
       // bin_to_json
       auto bin2 = type->json_to_bin({json.data(), json.size()});
       CHECK(bin2 == bin);
       // json_to_bin
-      eosio::input_stream bin_stream{bin};
+      core_net::input_stream bin_stream{bin};
       auto json2 = type->bin_to_json(bin_stream);
       CHECK(json2 == std::string(json.data(), json.size()));
    }
@@ -93,7 +93,7 @@ char empty_abi[] = R"({
 })";
 
 template<typename T>
-void test_int(eosio::abi& abi1, eosio::abi& abi2) {
+void test_int(core_net::abi& abi1, core_net::abi& abi2) {
    for(T i : {T(0), T(1), std::numeric_limits<T>::min(), std::numeric_limits<T>::max()}) {
       test(i, abi1, abi2);
    }
@@ -101,23 +101,23 @@ void test_int(eosio::abi& abi1, eosio::abi& abi2) {
 
 using int128 = __int128;
 using uint128 = unsigned __int128;
-using eosio::varint32;
-using eosio::varuint32;
-using eosio::float128;
-using eosio::microseconds;
-using eosio::time_point;
-using eosio::time_point_sec;
-using eosio::block_timestamp;
-using eosio::bytes;
-using eosio::checksum160;
-using eosio::checksum256;
-using eosio::checksum512;
-using eosio::public_key;
-using eosio::private_key;
-using eosio::signature;
-using eosio::symbol;
-using eosio::symbol_code;
-using eosio::asset;
+using core_net::varint32;
+using core_net::varuint32;
+using core_net::float128;
+using core_net::microseconds;
+using core_net::time_point;
+using core_net::time_point_sec;
+using core_net::block_timestamp;
+using core_net::bytes;
+using core_net::checksum160;
+using core_net::checksum256;
+using core_net::checksum512;
+using core_net::public_key;
+using core_net::private_key;
+using core_net::signature;
+using core_net::symbol;
+using core_net::symbol_code;
+using core_net::asset;
 
 using vec_type = std::vector<int>;
 struct struct_type {
@@ -129,12 +129,12 @@ EOSIO_REFLECT(struct_type, v, o, va);
 EOSIO_COMPARE(struct_type);
 
 int main() {
-   eosio::json_token_stream stream(empty_abi);
-   eosio::abi_def def = eosio::from_json<eosio::abi_def>(stream);
-   eosio::abi abi;
+   core_net::json_token_stream stream(empty_abi);
+   core_net::abi_def def = core_net::from_json<core_net::abi_def>(stream);
+   core_net::abi abi;
    convert(def, abi);
    abi.add_type<struct_type>();
-   eosio::abi new_abi(round_trip_abi(abi));
+   core_net::abi new_abi(round_trip_abi(abi));
    test(true, abi, new_abi);
    test(false, abi, new_abi);
    for(int i = -128; i <= 127; ++i) {
@@ -204,8 +204,8 @@ int main() {
       test(block_timestamp{i}, abi, new_abi);
    }
    test(block_timestamp{0xFFFFFFFFu}, abi, new_abi);
-   test(eosio::name("eosio"), abi, new_abi);
-   test(eosio::name(), abi, new_abi);
+   test(core_net::name("eosio"), abi, new_abi);
+   test(core_net::name(), abi, new_abi);
    test(bytes(), abi, new_abi);
    test(bytes{{0, 0, 0, 0}}, abi, new_abi);
    test(bytes{{'\xff', '\xff', '\xff', '\xff'}}, abi, new_abi);

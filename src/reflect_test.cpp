@@ -1,5 +1,5 @@
-#include <eosio/reflection.hpp>
-#include <eosio/for_each_field.hpp>
+#include <core_net/reflection.hpp>
+#include <core_net/for_each_field.hpp>
 #include <cstdio>
 
 int error_count;
@@ -20,9 +20,9 @@ EOSIO_REFLECT(fn, test);
 
 int main() {
    int counter = 0;
-   eosio::for_each_field<fn>([&](const char* name, auto method) { ++counter; });
+   core_net::for_each_field<fn>([&](const char* name, auto method) { ++counter; });
    CHECK(counter == 0);
-   eosio::for_each_method<fn>([&](const char* name, int (fn::*m)(int)) { CHECK(m == &fn::test); ++counter; });
+   core_net::for_each_method<fn>([&](const char* name, int (fn::*m)(int)) { CHECK(m == &fn::test); ++counter; });
    CHECK(counter == 1);
    if(error_count) return 1;
 }

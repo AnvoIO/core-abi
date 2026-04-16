@@ -616,8 +616,8 @@ void check_types() {
     check_context(context, abieos_set_abi(context, testKvAbiName, testKvTablesAbi));
 
     int next_id = 0;
-    auto write_corpus = [&](bool abi_is_bin, uint8_t operation, uint64_t contract, eosio::input_stream abi,
-                            eosio::input_stream type, eosio::input_stream data) {
+    auto write_corpus = [&](bool abi_is_bin, uint8_t operation, uint64_t contract, core_net::input_stream abi,
+                            core_net::input_stream type, core_net::input_stream data) {
         fuzzer_header header;
         header.abi_is_bin = abi_is_bin;
         header.operation = operation;
@@ -1294,13 +1294,13 @@ void check_types() {
             throw std::runtime_error(std::string{msg} + " capacity test failed");
     };
 
-    check_checksum_capacity(eosio::checksum160(), 20, "checksum160");
-    check_checksum_capacity(eosio::checksum256(), 32, "checksum256");
-    check_checksum_capacity(eosio::checksum512(), 64, "checksum512");
+    check_checksum_capacity(core_net::checksum160(), 20, "checksum160");
+    check_checksum_capacity(core_net::checksum256(), 32, "checksum256");
+    check_checksum_capacity(core_net::checksum512(), 64, "checksum512");
 
-    check_checksum_capacity(eosio::checksum160({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 20, "checksum160");
-    check_checksum_capacity(eosio::checksum256({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 32, "checksum256");
-    check_checksum_capacity(eosio::checksum512({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 64, "checksum512");
+    check_checksum_capacity(core_net::checksum160({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 20, "checksum160");
+    check_checksum_capacity(core_net::checksum256({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 32, "checksum256");
+    check_checksum_capacity(core_net::checksum512({1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}), 64, "checksum512");
 
     // check array of strings
     check_type(context, 0, "string[]", R"(["hello","world"])");
