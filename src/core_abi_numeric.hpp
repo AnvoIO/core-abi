@@ -1,4 +1,4 @@
-// copyright defined in abieos/LICENSE.txt
+// copyright defined in LICENSE
 
 #pragma once
 
@@ -7,13 +7,13 @@
 #include <stdint.h>
 #include <string>
 #include <string_view>
-#include <eosio/from_json.hpp>
+#include <core_net/from_json.hpp>
 
-#include "abieos_ripemd160.hpp"
+#include "core_abi_ripemd160.hpp"
 
 #define ABIEOS_NODISCARD [[nodiscard]]
 
-namespace abieos {
+namespace core_abi {
 
 template <typename State>
 ABIEOS_NODISCARD bool set_error(State& state, std::string error) {
@@ -59,16 +59,16 @@ inline void decimal_to_binary(std::array<uint8_t, size>& result,
                                                               std::string_view s) {
     memset(result.begin(), 0, result.size());
     for (auto& src_digit : s) {
-       eosio::check(!(src_digit < '0' || src_digit > '9'),
-            eosio::convert_json_error(eosio::from_json_error::expected_int));
+       core_net::check(!(src_digit < '0' || src_digit > '9'),
+            core_net::convert_json_error(core_net::from_json_error::expected_int));
         uint8_t carry = src_digit - '0';
         for (auto& result_byte : result) {
             int x = result_byte * 10 + carry;
             result_byte = x;
             carry = x >> 8;
         }
-        eosio::check(!carry,
-              eosio::convert_json_error(eosio::from_json_error::number_out_of_range));
+        core_net::check(!carry,
+              core_net::convert_json_error(core_net::from_json_error::number_out_of_range));
     }
 }
 
@@ -91,4 +91,4 @@ std::string binary_to_decimal(const std::array<uint8_t, size>& bin) {
     return result;
 }
 
-} // namespace abieos
+} // namespace core_abi

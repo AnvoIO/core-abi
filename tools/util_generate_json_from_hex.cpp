@@ -3,7 +3,7 @@
 //   may be used to generate deserialization tests cases in other languages and external packages
 //
 
-#include "abieos.h"
+#include "core_abi.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -23,28 +23,28 @@ std::string generate_json_from_hex(const char* abi_definition, const char* contr
     if (verbose) std::cerr << "Schema is: " << schema << " and hex is " << hex << std::endl << std::endl;
 
     // create empty context
-    using unique_abieos = std::unique_ptr<abieos_context, decltype( &abieos_destroy )>;
-    unique_abieos context( abieos_create(), &abieos_destroy );
+    using unique_core_abi = std::unique_ptr<core_abi_context, decltype( &core_abi_destroy )>;
+    unique_core_abi context( core_abi_create(), &core_abi_destroy );
     if (! context) throw std::runtime_error("unable to create context");
     if (verbose) std::cerr << "step 1 of 3: created empty ABI context" << std::endl;
 
     // set the transaction context.
     // first get the contract_id
-    uint64_t contract_id = abieos_string_to_name(context.get(), contract_name);
+    uint64_t contract_id = core_abi_string_to_name(context.get(), contract_name);
     if (contract_id == 0) {
-        std::cerr << "Error: abieos_string_to_name " << abieos_get_error(context.get()) << std::endl;
+        std::cerr << "Error: core_abi_string_to_name " << core_abi_get_error(context.get()) << std::endl;
         throw std::runtime_error("unable to set context");
     }
     // use our id and set the ABI
-    bool successSettingAbi = abieos_set_abi(context.get(), contract_id, abi_definition);
+    bool successSettingAbi = core_abi_set_abi(context.get(), contract_id, abi_definition);
     if (! successSettingAbi) {
-        std::cerr << "Error: abieos_set_abi " << abieos_get_error(context.get()) << std::endl;
+        std::cerr << "Error: core_abi_set_abi " << core_abi_get_error(context.get()) << std::endl;
         throw std::runtime_error("unable to set context");
     }
     if (verbose) std::cerr << "step 2 of 3: established context for transactions, packed transactions, and state history" << std::endl;
 
     // convert hex to json
-    std::string json = abieos_hex_to_json(
+    std::string json = core_abi_hex_to_json(
         context.get(),
         contract_id,
         schema,

@@ -1,4 +1,4 @@
-// copyright defined in abieos/LICENSE.txt
+// copyright defined in LICENSE
 
 'use strict';
 
@@ -99,34 +99,34 @@ const testAbi = `{
         ]
     }`;
 
-const lib = new fastcall.Library('../build/libabieos.so')
-    .function('void* abieos_create()')
-    .function('void abieos_destroy(void* context)')
-    .function('char* abieos_get_error(void* context)')
-    .function('int abieos_get_bin_size(void* context)')
-    .function('char* abieos_get_bin_data(void* context)')
-    .function('char* abieos_get_bin_hex(void* context)')
-    .function('uint64 abieos_string_to_name(void* context, char* str)')
-    .function('char* abieos_name_to_string(void* context, uint64 name)')
-    .function('int abieos_set_abi(void* context, uint64 contract, char* abi)')
-    .function('int abieos_set_abi_hex(void* context, uint64 contract, char* hex)')
-    .function('char* abieos_get_type_for_action(void* context, uint64 contract, uint64 action)')
-    .function('int abieos_json_to_bin(void* context, uint64 contract, char* name, char* json)')
-    .function('char* abieos_hex_to_json(void* context, uint64 contract, char* type, char* hex)');
+const lib = new fastcall.Library('../build/libcore-abi.so')
+    .function('void* core_abi_create()')
+    .function('void core_abi_destroy(void* context)')
+    .function('char* core_abi_get_error(void* context)')
+    .function('int core_abi_get_bin_size(void* context)')
+    .function('char* core_abi_get_bin_data(void* context)')
+    .function('char* core_abi_get_bin_hex(void* context)')
+    .function('uint64 core_abi_string_to_name(void* context, char* str)')
+    .function('char* core_abi_name_to_string(void* context, uint64 name)')
+    .function('int core_abi_set_abi(void* context, uint64 contract, char* abi)')
+    .function('int core_abi_set_abi_hex(void* context, uint64 contract, char* hex)')
+    .function('char* core_abi_get_type_for_action(void* context, uint64 contract, uint64 action)')
+    .function('int core_abi_json_to_bin(void* context, uint64 contract, char* name, char* json)')
+    .function('char* core_abi_hex_to_json(void* context, uint64 contract, char* type, char* hex)');
 
 const l = lib.interface;
 const cstr = fastcall.makeStringBuffer;
 
-const context = l.abieos_create();
+const context = l.core_abi_create();
 
 function check(result: any) {
     if (!result)
-        throw new Error(l.abieos_get_error(context).readCString());
+        throw new Error(l.core_abi_get_error(context).readCString());
 }
 
 function checkPtr(result: any) {
     if (result.isNull())
-        throw new Error(l.abieos_get_error(context).readCString());
+        throw new Error(l.core_abi_get_error(context).readCString());
     return result;
 }
 
@@ -135,7 +135,7 @@ function jsonStr(v: any) {
 }
 
 function name(s: string) {
-    return l.abieos_string_to_name(context, cstr(s));
+    return l.core_abi_string_to_name(context, cstr(s));
 }
 
 const rpc = new eosjs_jsonrpc.JsonRpc(rpcEndpoint, { fetch });
@@ -165,13 +165,13 @@ function eosjs_json_abi_to_hex(abi: any) {
     return eosjs_ser.arrayToHex(buf.asUint8Array());
 }
 
-function abieos_json_to_hex(contract: number, type: string, data: string) {
-    check(l.abieos_json_to_bin(context, contract, cstr(type), cstr(data)));
-    return l.abieos_get_bin_hex(context).readCString();
+function core_abi_json_to_hex(contract: number, type: string, data: string) {
+    check(l.core_abi_json_to_bin(context, contract, cstr(type), cstr(data)));
+    return l.core_abi_get_bin_hex(context).readCString();
 }
 
-function abieos_hex_to_json(contract: number, type: string, hex: string) {
-    let result = l.abieos_hex_to_json(context, contract, cstr(type), cstr(hex));
+function core_abi_hex_to_json(contract: number, type: string, hex: string) {
+    let result = l.core_abi_hex_to_json(context, contract, cstr(type), cstr(hex));
     checkPtr(result);
     return result.readCString();
 }
@@ -201,8 +201,8 @@ function check_throw(message: string, f: () => void) {
 }
 
 function check_type(contract: number, types: any, type: string, data: string, expected = data) {
-    let hex = abieos_json_to_hex(contract, type, data);
-    let json = abieos_hex_to_json(contract, type, hex);
+    let hex = core_abi_json_to_hex(contract, type, data);
+    let json = core_abi_hex_to_json(contract, type, hex);
     console.log(type, data, hex, json);
     if (json !== expected)
         throw new Error('conversion mismatch');
@@ -227,8 +227,8 @@ function check_type(contract: number, types: any, type: string, data: string, ex
 function check_types() {
     let token = name('eosio.token');
     let test = name('test.abi');
-    check(l.abieos_set_abi_hex(context, token, cstr(tokenHexApi)));
-    check(l.abieos_set_abi(context, test, cstr(testAbi)));
+    check(l.core_abi_set_abi_hex(context, token, cstr(tokenHexApi)));
+    check(l.core_abi_set_abi(context, test, cstr(testAbi)));
     const tokenTypes = eosjs_ser.getTypesFromAbi(eosjs_ser.createInitialTypes(), eosjs_hex_abi_to_json(tokenHexApi));
     const testTypes = eosjs_ser.getTypesFromAbi(eosjs_ser.createInitialTypes(), eosjs_hex_abi_to_json(eosjs_json_abi_to_hex(JSON.parse(testAbi))));
 
@@ -490,19 +490,19 @@ function check_types() {
 
 async function push_transfer() {
     if (useTokenHexApi)
-        check(l.abieos_set_abi_hex(context, name('eosio.token'), cstr(tokenHexApi)));
+        check(l.core_abi_set_abi_hex(context, name('eosio.token'), cstr(tokenHexApi)));
     else
-        check(l.abieos_set_abi(context, name('eosio.token'), jsonStr((await rpc.get_abi('eosio.token')).abi)));
-    let type = checkPtr(l.abieos_get_type_for_action(context, name('eosio.token'), name('transfer')));
-    check(l.abieos_json_to_bin(context, name('eosio.token'), type, jsonStr({
+        check(l.core_abi_set_abi(context, name('eosio.token'), jsonStr((await rpc.get_abi('eosio.token')).abi)));
+    let type = checkPtr(l.core_abi_get_type_for_action(context, name('eosio.token'), name('transfer')));
+    check(l.core_abi_json_to_bin(context, name('eosio.token'), type, jsonStr({
         from: 'useraaaaaaaa',
         to: 'useraaaaaaab',
         quantity: '0.0001 SYS',
         memo: '',
     })));
-    const actionDataHex = l.abieos_get_bin_hex(context).readCString();
+    const actionDataHex = l.core_abi_get_bin_hex(context).readCString();
     console.log('action json->bin: ', actionDataHex);
-    console.log('action bin->json: ', abieos_hex_to_json(name('eosio.token'), 'transfer', actionDataHex));
+    console.log('action bin->json: ', core_abi_hex_to_json(name('eosio.token'), 'transfer', actionDataHex));
 
     let info = await rpc.get_info();
     let refBlock = await rpc.get_block(info.head_block_num - 3);
@@ -525,10 +525,10 @@ async function push_transfer() {
         }],
         transaction_extensions: [] as any,
     };
-    check(l.abieos_json_to_bin(context, 0, cstr('transaction'), jsonStr(transaction)));
-    let transactionDataHex = l.abieos_get_bin_hex(context).readCString();
+    check(l.core_abi_json_to_bin(context, 0, cstr('transaction'), jsonStr(transaction)));
+    let transactionDataHex = l.core_abi_get_bin_hex(context).readCString();
     console.log('transaction json->bin: ', transactionDataHex);
-    console.log('transaction bin->json: ', abieos_hex_to_json(0, 'transaction', transactionDataHex));
+    console.log('transaction bin->json: ', core_abi_hex_to_json(0, 'transaction', transactionDataHex));
 
     let sig = await signatureProvider.sign({
         chainId: info.chain_id,
@@ -550,7 +550,7 @@ async function push_transfer() {
 (async () => {
     try {
         check(context);
-        check(l.abieos_set_abi(context, 0, jsonStr(transactionAbi)));
+        check(l.core_abi_set_abi(context, 0, jsonStr(transactionAbi)));
         check_types();
         if (useRpcEndpoint)
             await push_transfer();

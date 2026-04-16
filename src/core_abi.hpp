@@ -1,24 +1,24 @@
-// copyright defined in abieos/LICENSE.txt
+// copyright defined in LICENSE
 
 #pragma once
 
-#include <eosio/chain_conversions.hpp>
-#include <eosio/from_bin.hpp>
-#include <eosio/from_json.hpp>
-#include <eosio/reflection.hpp>
-#include <eosio/to_bin.hpp>
-#include <eosio/to_json.hpp>
-#include <eosio/abi.hpp>
-#include <eosio/operators.hpp>
-#include <eosio/bytes.hpp>
-#include <eosio/crypto.hpp>
-#include <eosio/symbol.hpp>
-#include <eosio/asset.hpp>
-#include <eosio/time.hpp>
-#include <eosio/fixed_bytes.hpp>
-#include <eosio/float.hpp>
-#include <eosio/varint.hpp>
-#include <eosio/bitset.hpp>
+#include <core_net/chain_conversions.hpp>
+#include <core_net/from_bin.hpp>
+#include <core_net/from_json.hpp>
+#include <core_net/reflection.hpp>
+#include <core_net/to_bin.hpp>
+#include <core_net/to_json.hpp>
+#include <core_net/abi.hpp>
+#include <core_net/operators.hpp>
+#include <core_net/bytes.hpp>
+#include <core_net/crypto.hpp>
+#include <core_net/symbol.hpp>
+#include <core_net/asset.hpp>
+#include <core_net/time.hpp>
+#include <core_net/fixed_bytes.hpp>
+#include <core_net/float.hpp>
+#include <core_net/varint.hpp>
+#include <core_net/bitset.hpp>
 
 #ifdef __eosio_cdt__
 #include <cwchar>
@@ -37,16 +37,16 @@
 #pragma clang diagnostic pop
 #endif
 
-#include "abieos_numeric.hpp"
+#include "core_abi_numeric.hpp"
 
 #include "rapidjson/reader.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-namespace abieos {
+namespace core_abi {
 
-using eosio::from_bin;
-using eosio::to_bin;
+using core_net::from_bin;
+using core_net::to_bin;
 
 inline constexpr bool trace_json_to_jvalue_event = false;
 inline constexpr bool trace_json_to_jvalue = false;
@@ -197,7 +197,7 @@ struct jvalue {
 // state and serializers
 ///////////////////////////////////////////////////////////////////////////////
 
-using eosio::abi_type;
+using core_net::abi_type;
 
 struct size_insertion {
     size_t position = 0;
@@ -239,68 +239,68 @@ struct json_to_jvalue_state : json_reader_handler<json_to_jvalue_state> {
 };
 
 struct jvalue_to_bin_state {
-    eosio::vector_stream writer;
+    core_net::vector_stream writer;
     const jvalue* received_value = nullptr;
     std::vector<jvalue_to_bin_stack_entry> stack{};
     bool skipped_extension = false;
 
     bool get_bool() const {
       auto* b = std::get_if<bool>(&received_value->value);
-      eosio::check(b, eosio::convert_json_error(eosio::from_json_error::expected_bool));
+      core_net::check(b, core_net::convert_json_error(core_net::from_json_error::expected_bool));
       return *b;
     }
 
     std::string_view get_string() const {
         auto* s = std::get_if<std::string>(&received_value->value);
-        eosio::check(s, eosio::convert_json_error(eosio::from_json_error::expected_string));
+        core_net::check(s, core_net::convert_json_error(core_net::from_json_error::expected_string));
         return *s;
     }
     void get_null() {
-       eosio::check(std::holds_alternative<std::nullptr_t>(received_value->value),
-              eosio::convert_json_error(eosio::from_json_error::expected_null));
+       core_net::check(std::holds_alternative<std::nullptr_t>(received_value->value),
+              core_net::convert_json_error(core_net::from_json_error::expected_null));
     }
     bool get_null_pred() {
        return std::holds_alternative<std::nullptr_t>(received_value->value);
     }
 };
 
-struct json_to_bin_state : eosio::json_token_stream {
+struct json_to_bin_state : core_net::json_token_stream {
     using json_token_stream::json_token_stream;
-    eosio::vector_stream& writer;
+    core_net::vector_stream& writer;
     std::vector<size_insertion> size_insertions{};
     std::vector<json_to_bin_stack_entry> stack{};
     bool skipped_extension = false;
 
-    explicit json_to_bin_state(char* in, eosio::vector_stream& out)
-      : eosio::json_token_stream(in), writer(out) {}
+    explicit json_to_bin_state(char* in, core_net::vector_stream& out)
+      : core_net::json_token_stream(in), writer(out) {}
 };
 
 struct bin_to_json_state {
-    eosio::input_stream& bin;
-    eosio::vector_stream& writer;
+    core_net::input_stream& bin;
+    core_net::vector_stream& writer;
     std::vector<bin_to_json_stack_entry> stack{};
     bool skipped_extension = false;
 
-    bin_to_json_state(eosio::input_stream& bin, eosio::vector_stream& writer)
+    bin_to_json_state(core_net::input_stream& bin, core_net::vector_stream& writer)
         : bin{bin}, writer{writer} {}
 };
 
 }
 
-namespace eosio {
+namespace core_net {
 
 struct abi_serializer {
-  virtual void json_to_bin(::abieos::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
+  virtual void json_to_bin(::core_abi::jvalue_to_bin_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
-  virtual void json_to_bin(::abieos::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
+  virtual void json_to_bin(::core_abi::json_to_bin_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
-  virtual void bin_to_json(::abieos::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
+  virtual void bin_to_json(::core_abi::bin_to_json_state& state, bool allow_extensions, const abi_type* type,
                                           bool start) const = 0;
 };
 
 }
 
-namespace abieos {
+namespace core_abi {
 
 ///////////////////////////////////////////////////////////////////////////////
 // serializer function prototypes
@@ -354,18 +354,18 @@ void bin_to_json(pseudo_variant*, bin_to_json_state& state, bool allow_extension
 // serializable types
 ///////////////////////////////////////////////////////////////////////////////
 
-using eosio::bytes;
+using core_net::bytes;
 
 template <typename State>
 void json_to_bin(bytes*, State& state, bool, const abi_type*, bool start) {
     auto s = state.get_string();;
     if (trace_json_to_bin)
         printf("%*sbytes (%d hex digits)\n", int(state.stack.size() * 4), "", int(s.size()));
-    eosio::check( !(s.size() & 1), eosio::convert_json_error(eosio::from_json_error::expected_hex_string) );
-    eosio::varuint32_to_bin(s.size() / 2, state.writer);
+    core_net::check( !(s.size() & 1), core_net::convert_json_error(core_net::from_json_error::expected_hex_string) );
+    core_net::varuint32_to_bin(s.size() / 2, state.writer);
     // FIXME: Add a function to encode a hex string to a stream
-    eosio::check(eosio::unhex(std::back_inserter(state.writer.data), s.begin(), s.end()),
-        eosio::convert_json_error(eosio::from_json_error::expected_hex_string));
+    core_net::check(core_net::unhex(std::back_inserter(state.writer.data), s.begin(), s.end()),
+        core_net::convert_json_error(core_net::from_json_error::expected_hex_string));
 }
 
 inline void bin_to_json(bytes*, bin_to_json_state& state, bool, const abi_type*, bool start) {
@@ -376,32 +376,32 @@ inline void bin_to_json(bytes*, bin_to_json_state& state, bool, const abi_type*,
     return to_json_hex(data, size, state.writer);
 }
 
-using eosio::float128;
-using eosio::checksum160;
-using eosio::checksum256;
-using eosio::checksum512;
+using core_net::float128;
+using core_net::checksum160;
+using core_net::checksum256;
+using core_net::checksum512;
 
 #ifndef ABIEOS_NO_INT128
 using uint128 = unsigned __int128;
 using int128 = __int128;
 #endif
 
-using eosio::public_key;
-using eosio::private_key;
-using eosio::signature;
-using eosio::name;
+using core_net::public_key;
+using core_net::private_key;
+using core_net::signature;
+using core_net::name;
 
-using eosio::varuint32;
-using eosio::varint32;
-using eosio::bitset;
+using core_net::varuint32;
+using core_net::varint32;
+using core_net::bitset;
 
-using eosio::time_point;
-using eosio::time_point_sec;
-using eosio::block_timestamp;
-using eosio::symbol_code;
-using eosio::symbol;
-using eosio::asset;
-using eosio::extended_asset;
+using core_net::time_point;
+using core_net::time_point_sec;
+using core_net::block_timestamp;
+using core_net::symbol_code;
+using core_net::symbol;
+using core_net::asset;
+using core_net::extended_asset;
 
 ///////////////////////////////////////////////////////////////////////////////
 // 128-bit support when native support is absent
@@ -430,10 +430,10 @@ void from_json(int128& obj, S& stream) {
     if (s.size() && s[0] == '-') {
         decimal_to_binary(obj.data, {s.data() + 1, s.size() - 1});
         negate(obj.data);
-        eosio::check(is_negative(obj.data), eosio::convert_json_error(eosio::from_json_error::number_out_of_range));
+        core_net::check(is_negative(obj.data), core_net::convert_json_error(core_net::from_json_error::number_out_of_range));
     } else {
         decimal_to_binary(obj.data, s);
-        eosio::check(!is_negative(obj.data), eosio::convert_json_error(eosio::from_json_error::number_out_of_range));
+        core_net::check(!is_negative(obj.data), core_net::convert_json_error(core_net::from_json_error::number_out_of_range));
     }
 }
 
@@ -464,7 +464,7 @@ void to_json(const int128& obj, S& stream) {
 
 using extensions_type = std::vector<std::pair<uint16_t, bytes>>;
 
-using eosio::abi_def;
+using core_net::abi_def;
 
 ABIEOS_NODISCARD inline bool check_abi_version(const std::string& s, std::string& error) {
     // Antelope/EOSIO namespace
@@ -535,9 +535,9 @@ inline void json_to_jvalue(jvalue& value, std::string_view json, F&& f) {
     state.stack.push_back({&value});
     rapidjson::Reader reader;
     rapidjson::InsituStringStream ss(mutable_json.data());
-    eosio::check(reader.Parse<rapidjson::kParseValidateEncodingFlag | rapidjson::kParseIterativeFlag |
+    core_net::check(reader.Parse<rapidjson::kParseValidateEncodingFlag | rapidjson::kParseIterativeFlag |
         rapidjson::kParseNumbersAsStringsFlag>(ss, state),
-        eosio::convert_json_error(eosio::from_json_error::unspecific_syntax_error));
+        core_net::convert_json_error(core_net::from_json_error::unspecific_syntax_error));
 }
 
 ABIEOS_NODISCARD inline bool json_to_jobject(jvalue& value, json_to_jvalue_state& state, event_type event, bool start) {
@@ -597,7 +597,7 @@ ABIEOS_NODISCARD inline bool json_to_jarray(jvalue& value, json_to_jvalue_state&
 // abi handling
 ///////////////////////////////////////////////////////////////////////////////
 
-using abi = eosio::abi;
+using abi = core_net::abi;
 
 ///////////////////////////////////////////////////////////////////////////////
 // json_to_bin (jvalue)
@@ -635,8 +635,8 @@ inline void json_to_bin(pseudo_extension*, State& state, bool allow_extensions,
 inline void json_to_bin(pseudo_object*, jvalue_to_bin_state& state, bool allow_extensions,
                                        const abi_type* type, bool start) {
     if (start) {
-       eosio::check(!(!state.received_value || !std::holds_alternative<jobject>(state.received_value->value)),
-            eosio::convert_json_error(eosio::from_json_error::expected_start_object));
+       core_net::check(!(!state.received_value || !std::holds_alternative<jobject>(state.received_value->value)),
+            core_net::convert_json_error(core_net::from_json_error::expected_start_object));
         if (trace_jvalue_to_bin)
             printf("%*s{ %d fields, allow_ex=%d\n", int(state.stack.size() * 4), "", int(type->as_struct()->fields.size()),
                    allow_extensions);
@@ -644,7 +644,7 @@ inline void json_to_bin(pseudo_object*, jvalue_to_bin_state& state, bool allow_e
     }
     auto& stack_entry = state.stack.back();
     ++stack_entry.position;
-    const std::vector<eosio::abi_field>& fields = stack_entry.type->as_struct()->fields;
+    const std::vector<core_net::abi_field>& fields = stack_entry.type->as_struct()->fields;
     if (stack_entry.position == (int)fields.size()) {
         if (trace_jvalue_to_bin)
             printf("%*s}\n", int((state.stack.size() - 1) * 4), "");
@@ -663,10 +663,10 @@ inline void json_to_bin(pseudo_object*, jvalue_to_bin_state& state, bool allow_e
             return;
         }
         stack_entry.position = -1;
-        eosio::check(false, eosio::convert_json_error(eosio::from_json_error::expected_field));
+        core_net::check(false, core_net::convert_json_error(core_net::from_json_error::expected_field));
     }
-    eosio::check(!state.skipped_extension,
-        eosio::convert_json_error(eosio::from_json_error::unexpected_field));
+    core_net::check(!state.skipped_extension,
+        core_net::convert_json_error(core_net::from_json_error::unexpected_field));
     state.received_value = &it->second;
     return field.type->ser->json_to_bin(state, allow_extensions && &field == &fields.back(),
                                         field.type, true);
@@ -675,12 +675,12 @@ inline void json_to_bin(pseudo_object*, jvalue_to_bin_state& state, bool allow_e
 inline void json_to_bin(pseudo_array*, jvalue_to_bin_state& state, bool, const abi_type* type,
                                        bool start) {
     if (start) {
-       eosio::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
-            eosio::convert_json_error(eosio::from_json_error::expected_start_array));
+       core_net::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
+            core_net::convert_json_error(core_net::from_json_error::expected_start_array));
         if (trace_jvalue_to_bin)
             printf("%*s[ %d elements\n", int(state.stack.size() * 4), "",
                    int(std::get<jarray>(state.received_value->value).size()));
-        eosio::varuint32_to_bin(std::get<jarray>(state.received_value->value).size(), state.writer);
+        core_net::varuint32_to_bin(std::get<jarray>(state.received_value->value).size(), state.writer);
         state.stack.push_back({type, false, state.received_value, -1});
     }
     auto& stack_entry = state.stack.back();
@@ -703,12 +703,12 @@ inline void json_to_bin(pseudo_fixed_array*, jvalue_to_bin_state& state, bool, c
                         bool start) {
     const abi_type::fixed_array* fa = type->as_fixed_array();
     if (start) {
-        eosio::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
-                     eosio::convert_json_error(eosio::from_json_error::expected_start_array));
+        core_net::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
+                     core_net::convert_json_error(core_net::from_json_error::expected_start_array));
         auto& value {std::get<jarray>(state.received_value->value)};
         if (trace_jvalue_to_bin)
             printf("%*s[ %d elements\n", int(state.stack.size() * 4), "", int(value.size()));
-        eosio::check(value.size() == fa->size, "incorrect size for fixed array");
+        core_net::check(value.size() == fa->size, "incorrect size for fixed array");
         state.stack.push_back({type, false, state.received_value, -1});
     }
     auto& stack_entry = state.stack.back();
@@ -730,13 +730,13 @@ inline void json_to_bin(pseudo_fixed_array*, jvalue_to_bin_state& state, bool, c
 inline void json_to_bin(pseudo_variant*, jvalue_to_bin_state& state, bool allow_extensions,
                                        const abi_type* type, bool start) {
     if (start) {
-       eosio::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
-            eosio::convert_json_error(eosio::from_json_error::expected_variant));
+       core_net::check(!(!state.received_value || !std::holds_alternative<jarray>(state.received_value->value)),
+            core_net::convert_json_error(core_net::from_json_error::expected_variant));
         auto& arr = std::get<jarray>(state.received_value->value);
-        eosio::check(arr.size() == 2,
-            eosio::convert_json_error(eosio::from_json_error::expected_variant));
-        eosio::check(std::holds_alternative<std::string>(arr[0].value),
-            eosio::convert_json_error(eosio::from_json_error::expected_variant));
+        core_net::check(arr.size() == 2,
+            core_net::convert_json_error(core_net::from_json_error::expected_variant));
+        core_net::check(std::holds_alternative<std::string>(arr[0].value),
+            core_net::convert_json_error(core_net::from_json_error::expected_variant));
         auto& typeName = std::get<std::string>(arr[0].value);
         if (trace_jvalue_to_bin)
             printf("%*s[ variant %s\n", int(state.stack.size() * 4), "", typeName.c_str());
@@ -747,12 +747,12 @@ inline void json_to_bin(pseudo_variant*, jvalue_to_bin_state& state, bool allow_
     auto& arr = std::get<jarray>(stack_entry.value->value);
     if (stack_entry.position == 0) {
         auto& typeName = std::get<std::string>(arr[0].value);
-        const std::vector<eosio::abi_field>& fields = *stack_entry.type->as_variant();
+        const std::vector<core_net::abi_field>& fields = *stack_entry.type->as_variant();
         auto it = std::find_if(fields.begin(), fields.end(),
                                [&](auto& field) { return field.name == typeName; });
-        eosio::check(it != fields.end(),
-            eosio::convert_json_error(eosio::from_json_error::invalid_type_for_variant));
-        eosio::varuint32_to_bin(it - fields.begin(), state.writer);
+        core_net::check(it != fields.end(),
+            core_net::convert_json_error(core_net::from_json_error::invalid_type_for_variant));
+        core_net::varuint32_to_bin(it - fields.begin(), state.writer);
         state.received_value = &arr[++stack_entry.position];
         return it->type->ser->json_to_bin(state, allow_extensions, it->type, true);
     } else {
@@ -764,7 +764,7 @@ inline void json_to_bin(pseudo_variant*, jvalue_to_bin_state& state, bool allow_
 
 template <typename T, typename State>
 void json_to_bin(T*, State& state, bool, const abi_type*, bool start) {
-    using eosio::from_json;
+    using core_net::from_json;
     T x;
     from_json(x, state);
     return to_bin(x, state.writer);
@@ -790,7 +790,7 @@ inline void json_to_bin(std::vector<char>& bin, const abi_type* type, std::strin
     mutable_json.push_back(0);
     mutable_json.push_back(0);
     std::vector<char> out_buf;
-    eosio::vector_stream out(out_buf);
+    core_net::vector_stream out(out_buf);
     json_to_bin_state state(mutable_json.data(), out);
 
     type->ser->json_to_bin(state, true, type, true);
@@ -798,17 +798,17 @@ inline void json_to_bin(std::vector<char>& bin, const abi_type* type, std::strin
         f();
         auto entry = state.stack.back();
         auto* type = entry.type;
-        eosio::check(state.stack.size() <= max_stack_size,
-            eosio::convert_abi_error(eosio::abi_error::recursion_limit_reached));
+        core_net::check(state.stack.size() <= max_stack_size,
+            core_net::convert_abi_error(core_net::abi_error::recursion_limit_reached));
         type->ser->json_to_bin(state, entry.allow_extensions, type, false);
     }
-    eosio::check(state.complete(),
-        eosio::convert_json_error(eosio::from_json_error::expected_end));
+    core_net::check(state.complete(),
+        core_net::convert_json_error(core_net::from_json_error::expected_end));
 
     size_t pos = 0;
     for (auto& insertion : state.size_insertions) {
         bin.insert(bin.end(), out_buf.begin() + pos, out_buf.begin() + insertion.position);
-        eosio::push_varuint32(bin, insertion.size);
+        core_net::push_varuint32(bin, insertion.size);
         pos = insertion.position;
     }
     bin.insert(bin.end(), out_buf.begin() + pos, out_buf.end());
@@ -824,13 +824,13 @@ inline void json_to_bin(pseudo_object*, json_to_bin_state& state, bool allow_ext
         state.stack.push_back({type, allow_extensions});
     }
     auto& stack_entry = state.stack.back();
-    const std::vector<eosio::abi_field>& fields = type->as_struct()->fields;
+    const std::vector<core_net::abi_field>& fields = type->as_struct()->fields;
     if (state.get_end_object_pred()) {
         if (stack_entry.position + 1 != (ptrdiff_t)fields.size()) {
             auto& field = fields[stack_entry.position + 1];
             if (!field.type->extension_of() || !allow_extensions) {
                 stack_entry.position = -1;
-                eosio::check(false, eosio::convert_json_error(eosio::from_json_error::expected_field));
+                core_net::check(false, core_net::convert_json_error(core_net::from_json_error::expected_field));
             }
             ++stack_entry.position;
             state.skipped_extension = true;
@@ -842,12 +842,12 @@ inline void json_to_bin(pseudo_object*, json_to_bin_state& state, bool allow_ext
     }
     auto key = state.maybe_get_key();
     if (key) {
-       eosio::check(!(++stack_entry.position >= (ptrdiff_t)fields.size() || state.skipped_extension),
-             eosio::convert_json_error(eosio::from_json_error::unexpected_field));
+       core_net::check(!(++stack_entry.position >= (ptrdiff_t)fields.size() || state.skipped_extension),
+             core_net::convert_json_error(core_net::from_json_error::unexpected_field));
         auto& field = fields[stack_entry.position];
         if (*key != field.name) {
             stack_entry.position = -1;
-            eosio::check(false, eosio::convert_json_error(eosio::from_json_error::expected_field));
+            core_net::check(false, core_net::convert_json_error(core_net::from_json_error::expected_field));
         }
     } else {
         auto& field = fields[stack_entry.position];
@@ -900,7 +900,7 @@ inline void json_to_bin(pseudo_fixed_array*, json_to_bin_state& state, bool, con
         if (trace_json_to_bin)
             printf("%*s]\n", int((state.stack.size() - 1) * 4), "");
         const abi_type::fixed_array* fa = type->as_fixed_array();
-        eosio::check(stack_entry.position + 1 == (int)fa->size, "incorrect size for fixed array");
+        core_net::check(stack_entry.position + 1 == (int)fa->size, "incorrect size for fixed array");
         state.stack.pop_back();
         return;
     }
@@ -923,29 +923,29 @@ inline void json_to_bin(pseudo_variant*, json_to_bin_state& state, bool allow_ex
     auto& stack_entry = state.stack.back();
     ++stack_entry.position;
     if (state.get_end_array_pred()) {
-       eosio::check(stack_entry.position == 2,
-            eosio::convert_json_error(eosio::from_json_error::expected_variant));
+       core_net::check(stack_entry.position == 2,
+            core_net::convert_json_error(core_net::from_json_error::expected_variant));
         if (trace_json_to_bin)
             printf("%*s]\n", int((state.stack.size() - 1) * 4), "");
         state.stack.pop_back();
         return;
     }
-    const std::vector<eosio::abi_field>& fields = *stack_entry.type->as_variant();
+    const std::vector<core_net::abi_field>& fields = *stack_entry.type->as_variant();
     if (stack_entry.position == 0) {
         auto typeName = state.get_string();
         if (trace_json_to_bin)
             printf("%*stype: %.*s\n", int(state.stack.size() * 4), "", (int)typeName.size(), typeName.data());
         auto it = std::find_if(fields.begin(), fields.end(),
                                [&](auto& field) { return field.name == typeName; });
-        eosio::check(it != fields.end(),
-            eosio::convert_json_error(eosio::from_json_error::invalid_type_for_variant));
+        core_net::check(it != fields.end(),
+            core_net::convert_json_error(core_net::from_json_error::invalid_type_for_variant));
         stack_entry.variant_type_index = it - fields.begin();
-        eosio::varuint32_to_bin(stack_entry.variant_type_index, state.writer);
+        core_net::varuint32_to_bin(stack_entry.variant_type_index, state.writer);
     } else if (stack_entry.position == 1) {
         auto& field = fields[stack_entry.variant_type_index];
         field.type->ser->json_to_bin(state, allow_extensions, field.type, true);
     } else {
-       eosio::check(false, eosio::convert_json_error(eosio::from_json_error::expected_variant));
+       core_net::check(false, core_net::convert_json_error(core_net::from_json_error::expected_variant));
     }
 }
 
@@ -954,18 +954,18 @@ inline void json_to_bin(pseudo_variant*, json_to_bin_state& state, bool allow_ex
 ///////////////////////////////////////////////////////////////////////////////
 
 template<typename F>
-inline void bin_to_json(eosio::input_stream& bin, const abi_type* type, std::string& dest, F&& f) {
+inline void bin_to_json(core_net::input_stream& bin, const abi_type* type, std::string& dest, F&& f) {
     // FIXME: Write directly to the string instead of creating an additional buffer
     std::vector<char> buffer;
-    eosio::vector_stream writer{buffer};
+    core_net::vector_stream writer{buffer};
     bin_to_json_state state{bin, writer};
     type->ser->bin_to_json(state, true, type, true);
     while (!state.stack.empty()) {
         f();
         auto& entry = state.stack.back();
         entry.type->ser->bin_to_json(state, entry.allow_extensions, entry.type, false);
-        eosio::check(state.stack.size() <= max_stack_size,
-            eosio::convert_abi_error(eosio::abi_error::recursion_limit_reached));
+        core_net::check(state.stack.size() <= max_stack_size,
+            core_net::convert_abi_error(core_net::abi_error::recursion_limit_reached));
     }
     dest = std::string_view(writer.data.data(), writer.data.size());
 }
@@ -998,7 +998,7 @@ inline void bin_to_json(pseudo_object*, bin_to_json_state& state, bool allow_ext
         return;
     }
     auto& stack_entry = state.stack.back();
-    const std::vector<eosio::abi_field>& fields = type->as_struct()->fields;
+    const std::vector<core_net::abi_field>& fields = type->as_struct()->fields;
     if (++stack_entry.position < (ptrdiff_t)fields.size()) {
         auto& field = fields[stack_entry.position];
         if (trace_bin_to_json)
@@ -1081,8 +1081,8 @@ inline void bin_to_json(pseudo_variant*, bin_to_json_state& state, bool allow_ex
     if (++stack_entry.position == 0) {
         uint32_t index;
         varuint32_from_bin(index, state.bin);
-        const std::vector<eosio::abi_field>& fields = *stack_entry.type->as_variant();
-        eosio::check(index < fields.size(), eosio::convert_stream_error(eosio::stream_error::bad_variant_index));
+        const std::vector<core_net::abi_field>& fields = *stack_entry.type->as_variant();
+        core_net::check(index < fields.size(), core_net::convert_stream_error(core_net::stream_error::bad_variant_index));
         auto& f = fields[index];
         to_json(f.name, state.writer);
         state.writer.write(',');
@@ -1104,4 +1104,4 @@ auto bin_to_json(T* t, bin_to_json_state& state, bool, const abi_type*, bool sta
     return to_json(v, state.writer);
 }
 
-} // namespace abieos
+} // namespace core_abi

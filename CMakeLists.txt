@@ -1,7 +1,7 @@
-# copyright defined in abieos/LICENSE.txt
+# copyright defined in LICENSE
 
 cmake_minimum_required (VERSION 3.16...4.0)
-project(abieos VERSION 0.1 LANGUAGES CXX C)
+project(core-abi VERSION 1.0 LANGUAGES CXX C)
 
 set(default_build_type "Release")
 
@@ -17,8 +17,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-option(ABIEOS_NO_INT128 "disable use of __int128" OFF)
-option(ABIEOS_ONLY_LIBRARY "define and build the ABIEOS library" OFF)
+option(CORE_ABI_NO_INT128 "disable use of __int128" OFF)
+option(CORE_ABI_ONLY_LIBRARY "define and build the core-abi library" OFF)
 
 if(NOT DEFINED SKIP_SUBMODULE_CHECK)
   execute_process(COMMAND git submodule status --recursive
@@ -35,88 +35,89 @@ endif()
 find_package(Threads)
 include(GNUInstallDirs)
 
-add_library(abieos STATIC src/abi.cpp src/crypto.cpp)
-target_include_directories(abieos PUBLIC 
-                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include" 
-                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/external/rapidjson/include"
+add_library(core-abi STATIC src/abi.cpp src/crypto.cpp)
+target_include_directories(core-abi PUBLIC
+                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include>"
                           "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
-if(ABIEOS_NO_INT128)
-target_compile_definitions(abieos PUBLIC ABIEOS_NO_INT128)
+if(CORE_ABI_NO_INT128)
+target_compile_definitions(core-abi PUBLIC CORE_ABI_NO_INT128)
 endif()
 
-add_library(abieos_module MODULE src/abieos.cpp src/abi.cpp src/crypto.cpp)
-target_include_directories(abieos_module PUBLIC 
-                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include;" 
-                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/external/rapidjson/include" 
+add_library(core-abi_module MODULE src/core_abi.cpp src/abi.cpp src/crypto.cpp)
+target_include_directories(core-abi_module PUBLIC
+                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include>"
                           "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
-target_link_libraries(abieos_module ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(abieos_module PROPERTIES OUTPUT_NAME "abieos")
+target_link_libraries(core-abi_module ${CMAKE_THREAD_LIBS_INIT})
+set_target_properties(core-abi_module PROPERTIES OUTPUT_NAME "core-abi")
 
 enable_testing()
 
-add_executable(test_abieos src/test.cpp src/abieos.cpp src/ship.abi.cpp)
-target_link_libraries(test_abieos abieos ${CMAKE_THREAD_LIBS_INIT})
-add_test(NAME test_abieos COMMAND test_abieos)
+add_executable(test_core_abi src/test.cpp src/core_abi.cpp src/ship.abi.cpp)
+target_link_libraries(test_core_abi core-abi ${CMAKE_THREAD_LIBS_INIT})
+add_test(NAME test_core_abi COMMAND test_core_abi)
 
-if(NOT ABIEOS_NO_INT128)
-    add_executable(test_abieos_template src/template_test.cpp src/abieos.cpp)
-    target_link_libraries(test_abieos_template abieos ${CMAKE_THREAD_LIBS_INIT})
-    add_test(NAME test_abieos_template COMMAND test_abieos_template)
+if(NOT CORE_ABI_NO_INT128)
+    add_executable(test_core_abi_template src/template_test.cpp src/core_abi.cpp)
+    target_link_libraries(test_core_abi_template core-abi ${CMAKE_THREAD_LIBS_INIT})
+    add_test(NAME test_core_abi_template COMMAND test_core_abi_template)
 endif()
 
-add_executable(test_abieos_key src/key_test.cpp src/abieos.cpp)
-target_link_libraries(test_abieos_key abieos ${CMAKE_THREAD_LIBS_INIT})
-add_test(NAME test_abieos_key COMMAND test_abieos_key)
+add_executable(test_core_abi_key src/key_test.cpp src/core_abi.cpp)
+target_link_libraries(test_core_abi_key core-abi ${CMAKE_THREAD_LIBS_INIT})
+add_test(NAME test_core_abi_key COMMAND test_core_abi_key)
 
-add_executable(test_abieos_reflect src/reflect_test.cpp)
-target_include_directories(test_abieos_reflect PRIVATE include)
-add_test(NAME test_abieos_reflect COMMAND test_abieos_reflect)
+add_executable(test_core_abi_reflect src/reflect_test.cpp)
+target_include_directories(test_core_abi_reflect PRIVATE include)
+add_test(NAME test_core_abi_reflect COMMAND test_core_abi_reflect)
 
 # Causes build issues on some platforms
-# add_executable(test_abieos_sanitize src/test.cpp src/abieos.cpp src/abi.cpp src/crypto.cpp)
-# target_include_directories(test_abieos_sanitize PRIVATE include external/outcome/single-header external/rapidjson/include external/date/include)
-# target_link_libraries(test_abieos_sanitize abieos -fno-omit-frame-pointer -fsanitize=address,undefined ${CMAKE_THREAD_LIBS_INIT})
-# target_compile_options(test_abieos_sanitize PUBLIC -fno-omit-frame-pointer -fsanitize=address,undefined)
-# add_test(NAME test_abieos_sanitize COMMAND test_abieos_sanitize)
+# add_executable(test_core_abi_sanitize src/test.cpp src/core_abi.cpp src/abi.cpp src/crypto.cpp)
+# target_include_directories(test_core_abi_sanitize PRIVATE include external/outcome/single-header external/rapidjson/include external/date/include)
+# target_link_libraries(test_core_abi_sanitize core-abi -fno-omit-frame-pointer -fsanitize=address,undefined ${CMAKE_THREAD_LIBS_INIT})
+# target_compile_options(test_core_abi_sanitize PUBLIC -fno-omit-frame-pointer -fsanitize=address,undefined)
+# add_test(NAME test_core_abi_sanitize COMMAND test_core_abi_sanitize)
 
-# add_executable(fuzzer src/fuzzer.cpp src/abieos.cpp)
+# add_executable(fuzzer src/fuzzer.cpp src/core_abi.cpp)
 # target_include_directories(fuzzer PRIVATE external/outcome/single-header external/rapidjson/include external/date/include)
 # target_link_libraries(fuzzer -fsanitize=fuzzer,address,undefined,signed-integer-overflow -fstandalone-debug ${CMAKE_THREAD_LIBS_INIT})
 # target_compile_options(fuzzer PRIVATE -fsanitize=fuzzer,address,undefined,signed-integer-overflow -fstandalone-debug)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang|AppleClang)
-    target_compile_options(abieos PRIVATE -Wall -Wextra -Wno-unused-parameter -fcolor-diagnostics)
-    target_compile_options(test_abieos PRIVATE -Wall -Wextra -Wno-unused-parameter -fcolor-diagnostics)
+    target_compile_options(core-abi PRIVATE -Wall -Wextra -Wno-unused-parameter -fcolor-diagnostics)
+    target_compile_options(test_core_abi PRIVATE -Wall -Wextra -Wno-unused-parameter -fcolor-diagnostics)
 endif()
 
-if (NOT ABIEOS_ONLY_LIBRARY)
+if (NOT CORE_ABI_ONLY_LIBRARY)
 add_subdirectory(tools)
 endif()
 
-if(ABIEOS_INSTALL_COMPONENT)
-   set(INSTALL_COMPONENT_ARGS COMPONENT ${ABIEOS_INSTALL_COMPONENT} EXCLUDE_FROM_ALL)
+if(CORE_ABI_INSTALL_COMPONENT)
+   set(INSTALL_COMPONENT_ARGS COMPONENT ${CORE_ABI_INSTALL_COMPONENT} EXCLUDE_FROM_ALL)
 endif()
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/core_net DESTINATION include ${INSTALL_COMPONENT_ARGS})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/eosio DESTINATION include ${INSTALL_COMPONENT_ARGS})
 
-install(TARGETS abieos
-  EXPORT abieos
+install(TARGETS core-abi
+  EXPORT core-abi
 	INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} ${INSTALL_COMPONENT_ARGS}
 	ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR} ${INSTALL_COMPONENT_ARGS}
 )
 
-install(EXPORT abieos
-  DESTINATION "share/abieos"
-  FILE abieos-targets.cmake
+install(EXPORT core-abi
+  DESTINATION "share/core-abi"
+  FILE core-abi-targets.cmake
   ${INSTALL_COMPONENT_ARGS}
 )
 
-export(TARGETS abieos 
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/share/abieos/abieos-targets.cmake)
-configure_file(abieos-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/share/abieos/abieos-config.cmake COPYONLY)
+export(TARGETS core-abi
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/share/core-abi/core-abi-targets.cmake)
+configure_file(core-abi-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/share/core-abi/core-abi-config.cmake COPYONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/abieos/abieos-config.cmake
-        DESTINATION "share/abieos"
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/core-abi/core-abi-config.cmake
+        DESTINATION "share/core-abi"
         ${INSTALL_COMPONENT_ARGS})
